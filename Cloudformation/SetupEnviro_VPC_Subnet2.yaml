@@ -1,0 +1,39 @@
+#Using this to test the Exports variables in Cloudformation 
+#Description of Template
+#  This template will configure the routing tables in AWS
+# 
+#
+#
+# History - Any changes need to be documented below.
+# 
+# 2/5/18 - v1.0 - Created YAML File
+#
+#Start of Template
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'v1.0 - Configure Routing tables in Environment'
+Mappings:
+  General:
+    ResourceNames:
+      IGW: igw-global-sbx-use1
+      RouteTableDMZ: rtb-dmz-sbx-use1
+Resources:
+#
+# Section 1
+#  v1.0 - Adds a route to DMZ route table to Internet Gateway
+#
+#
+  RouteIGWtoDMZ:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: 
+        Fn::ImportValue: 
+            Fn::FindInMap: [General, ResourceNames, RouteTableDMZ]
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Fn::ImportValue:
+            Fn::FindInMap: [General, ResourceNames, IGW]
+#
+# Section 2
+#  Future Use
+#
+#
