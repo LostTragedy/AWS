@@ -1,0 +1,448 @@
+# Description of Template
+#  This template will create VPC, Subnets, Routing Tables and IGW.
+#  Subnets will be associated with their route tables.
+#
+#
+# History - Any changes need to be documented below.
+# 
+# 2/3/18 - v1.0 - Rhugg - Created YAML File
+#
+#Start of Template
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'v1.0 - Creates the VPC, Subnets, IGW, and route tables for AWS'
+#
+# Mappings
+#   Variables that should be defined before executing 
+#  
+#
+Mappings:
+  VPCConfig:
+    General:
+      Name: vpc-global-sbx-use1
+      CIDR: 172.31.0.0/17
+  RouteTableConfig:
+    Names:
+        DMZ: rtb-dmz-sbx-use1
+        Core: rtb-core-sbx-use1
+        Secure: rtb-secure-sbx-use1
+  InternetGatewayConfig:
+    General:
+      Name: igw-global-sbx-use1
+  SubNetConfig:
+    AZZone:
+      "1": us-east-1a
+      "2": us-east-1b
+      "3": us-east-1c
+      "4": us-east-1d
+    DMZName:
+      '1': subnet-dmz-sbx-use1a
+      '2': subnet-dmz-sbx-use1b
+      '3': subnet-dmz-sbx-use1c
+      '4': subnet-dmz-sbx-use1d
+    DMZCIDR:
+      '1': 172.31.0.0/23
+      '2': 172.31.2.0/23
+      '3': 172.31.4.0/23
+      '4': 172.31.6.0/23
+    CoreName:
+      '1': subnet-core-sbx-use1a
+      '2': subnet-core-sbx-use1b
+      '3': subnet-core-sbx-use1c
+      '4': subnet-core-sbx-use1d
+    CoreCIDR:
+      '1': 172.31.16.0/23
+      '2': 172.31.18.0/23
+      '3': 172.31.20.0/23
+      '4': 172.31.22.0/23
+    SecureName:
+      '1': subnet-secure-sbx-use1a
+      '2': subnet-secure-sbx-use1b
+      '3': subnet-secure-sbx-use1c
+      '4': subnet-secure-sbx-use1d
+    SecureCIDR:
+      '1': 172.31.32.0/23
+      '2': 172.31.34.0/23
+      '3': 172.31.36.0/23
+      '4': 172.31.38.0/23
+Resources:
+#
+# VPC Creation and Configuration
+#
+  MainVPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      CidrBlock: !FindInMap [VPCConfig,General,CIDR]
+      Tags:
+        - Key: "Name"
+          Value: !FindInMap [VPCConfig,General,Name]
+#
+# Route Table creation for different environments
+#
+  RouteTableDMZ:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: 
+        Ref: MainVPC
+      Tags:
+        - Key: "Name"
+          Value: !FindInMap [RouteTableConfig,Names,DMZ]
+    DependsOn: MainVPC
+  RouteTableCore:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: 
+        Ref: MainVPC
+      Tags:
+        - Key: "Name"
+          Value: !FindInMap [RouteTableConfig,Names,Core]
+    DependsOn: MainVPC
+  RouteTableSecure:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: 
+        Ref: MainVPC
+      Tags:
+        - Key: "Name"
+          Value: !FindInMap [RouteTableConfig,Names,Secure]
+    DependsOn: MainVPC
+#
+# Internet Gateway creation and configuration
+#
+  MainInternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+      - Key: "Name"
+        Value: !FindInMap [InternetGatewayConfig,General,Name]
+    DependsOn: MainVPC
+  AttachIGW:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties: 
+      InternetGatewayId: 
+        Ref: MainInternetGateway
+      VpcId: 
+        Ref: MainVPC
+    DependsOn: MainInternetGateway
+#
+# DMZ Subnets creations and configurations
+#
+  SubnetDMZ1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: MainVPC
+      CidrBlock: !FindInMap [SubNetConfig,DMZCIDR,"1"]
+      AvailabilityZone: !FindInMap [SubNetConfig,AZZone,"1"]
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: "Name"
+        Value: !FindInMap [SubNetConfig,DMZName,"1"]
+    DependsOn: RouteTableDMZ
+  SubnetDMZ2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: MainVPC
+      CidrBlock: !FindInMap [SubNetConfig,DMZCIDR,"2"]
+      AvailabilityZone: !FindInMap [SubNetConfig,AZZone,"2"]
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: "Name"
+        Value: !FindInMap [SubNetConfig,DMZName,"2"]
+    DependsOn: RouteTableDMZ
+  SubnetDMZ3:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: MainVPC
+      CidrBlock: !FindInMap [SubNetConfig,DMZCIDR,"3"]
+      AvailabilityZone: !FindInMap [SubNetConfig,AZZone,"3"]
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: "Name"
+        Value: !FindInMap [SubNetConfig,DMZName,"3"]
+    DependsOn: RouteTableDMZ
+  SubnetDMZ4:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: MainVPC
+      CidrBlock: !FindInMap [SubNetConfig,DMZCIDR,"4"]
+      AvailabilityZone: !FindInMap [SubNetConfig,AZZone,"4"]
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: "Name"
+        Value: !FindInMap [SubNetConfig,DMZName,"4"]
+    DependsOn: RouteTableDMZ
+#
+# Core Subnets creation and configuration
+#
+  SubnetCore1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: MainVPC
+      CidrBlock: !FindInMap [SubNetConfig,CoreCIDR,"1"]
+      AvailabilityZone: !FindInMap [SubNetConfig,AZZone,"1"]
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: "Name"
+        Value: !FindInMap [SubNetConfig,CoreName,"1"]
+    DependsOn: RouteTableCore
+  SubnetCore2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: MainVPC
+      CidrBlock: !FindInMap [SubNetConfig,CoreCIDR,"2"]
+      AvailabilityZone: !FindInMap [SubNetConfig,AZZone,"2"]
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: "Name"
+        Value: !FindInMap [SubNetConfig,CoreName,"2"]
+    DependsOn: RouteTableCore
+  SubnetCore3:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: MainVPC
+      CidrBlock: !FindInMap [SubNetConfig,CoreCIDR,"3"]
+      AvailabilityZone: !FindInMap [SubNetConfig,AZZone,"3"]
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: "Name"
+        Value: !FindInMap [SubNetConfig,CoreName,"3"]
+    DependsOn: RouteTableCore
+  SubnetCore4:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: MainVPC
+      CidrBlock: !FindInMap [SubNetConfig,CoreCIDR,"4"]
+      AvailabilityZone: !FindInMap [SubNetConfig,AZZone,"4"]
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: "Name"
+        Value: !FindInMap [SubNetConfig,CoreName,"4"]
+    DependsOn: RouteTableCore
+    #
+    # Secure Subnets creation and configurations
+    #
+  SubnetSecure1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: MainVPC
+      CidrBlock: !FindInMap [SubNetConfig,SecureCIDR,"1"]
+      AvailabilityZone: !FindInMap [SubNetConfig,AZZone,"1"]
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: "Name"
+        Value: !FindInMap [SubNetConfig,SecureName,"1"]
+    DependsOn: RouteTableSecure
+  SubnetSecure2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: MainVPC
+      CidrBlock: !FindInMap [SubNetConfig,SecureCIDR,"2"]
+      AvailabilityZone: !FindInMap [SubNetConfig,AZZone,"2"]
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: "Name"
+        Value: !FindInMap [SubNetConfig,SecureName,"2"]
+    DependsOn: RouteTableSecure
+  SubnetSecure3:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: MainVPC
+      CidrBlock: !FindInMap [SubNetConfig,SecureCIDR,"3"]
+      AvailabilityZone: !FindInMap [SubNetConfig,AZZone,"3"]
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: "Name"
+        Value: !FindInMap [SubNetConfig,SecureName,"3"]
+    DependsOn: RouteTableSecure
+  SubnetSecure4:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: MainVPC
+      CidrBlock: !FindInMap [SubNetConfig,SecureCIDR,"4"]
+      AvailabilityZone: !FindInMap [SubNetConfig,AZZone,"4"]
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: "Name"
+        Value: !FindInMap [SubNetConfig,SecureName,"4"]
+    DependsOn: RouteTableSecure
+#
+# Associate Subnets to their relative Route Tables
+#
+  SubnetRouteTableAssociationDMZ1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetDMZ1
+      RouteTableId:
+        Ref: RouteTableDMZ
+  SubnetRouteTableAssociationDMZ2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetDMZ2
+      RouteTableId:
+        Ref: RouteTableDMZ
+  SubnetRouteTableAssociationDMZ3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetDMZ3
+      RouteTableId:
+        Ref: RouteTableDMZ
+  SubnetRouteTableAssociationDMZ4:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetDMZ4
+      RouteTableId:
+        Ref: RouteTableDMZ
+  SubnetRouteTableAssociationCore1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetCore1
+      RouteTableId:
+        Ref: RouteTableCore
+  SubnetRouteTableAssociationCore2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetCore2
+      RouteTableId:
+        Ref: RouteTableCore
+  SubnetRouteTableAssociationCore3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetCore3
+      RouteTableId:
+        Ref: RouteTableCore
+  SubnetRouteTableAssociationCore4:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetCore4
+      RouteTableId:
+        Ref: RouteTableCore
+  SubnetRouteTableAssociationSecure1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetSecure1
+      RouteTableId:
+        Ref: RouteTableSecure
+  SubnetRouteTableAssociationSecure2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetSecure2
+      RouteTableId:
+        Ref: RouteTableSecure
+  SubnetRouteTableAssociationSecure3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetSecure3
+      RouteTableId:
+        Ref: RouteTableSecure
+  SubnetRouteTableAssociationSecure4:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetSecure4
+      RouteTableId:
+        Ref: RouteTableSecure
+#
+#
+# Output Section
+#
+#
+#
+Outputs:
+# Create Export of VPC ID
+  MainVPC:
+    Value: !Ref MainVPC
+    Export: 
+      Name: !FindInMap [VPCConfig,General,Name]
+# Create Exports of RouteTable ID
+  RouteTableDMZ:
+    Value: !Ref RouteTableDMZ
+    Export: 
+      Name: !FindInMap [RouteTableConfig,Names,DMZ]
+  RouteTableCore:
+    Value: !Ref RouteTableCore
+    Export: 
+      Name: !FindInMap [RouteTableConfig,Names,Core]
+  RouteTableSecure:
+    Value: !Ref RouteTableSecure
+    Export: 
+      Name: !FindInMap [RouteTableConfig,Names,Secure]
+# Create Exports of IGW ID
+  MainInternetGateway:
+    Value: !Ref MainInternetGateway
+    Export: 
+      Name: !FindInMap [InternetGatewayConfig,General,Name]
+# Create Exports of Subnet IDs
+  SubnetDMZ1:
+    Value: !Ref SubnetDMZ1
+    Export: 
+      Name: !FindInMap [SubNetConfig,DMZName,"1"]
+  SubnetDMZ2:
+    Value: !Ref SubnetDMZ2
+    Export: 
+      Name: !FindInMap [SubNetConfig,DMZName,"2"]
+  SubnetDMZ3:
+    Value: !Ref SubnetDMZ3
+    Export: 
+      Name: !FindInMap [SubNetConfig,DMZName,"3"]
+  SubnetDMZ4:
+    Value: !Ref SubnetDMZ4
+    Export: 
+      Name:  !FindInMap [SubNetConfig,DMZName,"4"]
+  SubnetCore1:
+    Value: !Ref SubnetCore1
+    Export: 
+      Name: !FindInMap [SubNetConfig,CoreName,"1"]
+  SubnetCore2:
+    Value: !Ref SubnetCore2
+    Export: 
+      Name: !FindInMap [SubNetConfig,CoreName,"2"]
+  SubnetCore3:
+    Value: !Ref SubnetCore3
+    Export: 
+      Name: !FindInMap [SubNetConfig,CoreName,"3"]
+  SubnetCore4:
+    Value: !Ref SubnetCore4
+    Export: 
+      Name: !FindInMap [SubNetConfig,CoreName,"4"]
+  SubnetSecure1:
+    Value: !Ref SubnetSecure1
+    Export: 
+      Name: !FindInMap [SubNetConfig,SecureName,"1"]
+  SubnetSecure2:
+    Value: !Ref SubnetSecure2
+    Export: 
+      Name: !FindInMap [SubNetConfig,SecureName,"2"]
+  SubnetSecure3:
+    Value: !Ref SubnetSecure3
+    Export: 
+      Name: !FindInMap [SubNetConfig,SecureName,"3"]
+  SubnetSecure4:
+    Value: !Ref SubnetSecure4
+    Export: 
+      Name: !FindInMap [SubNetConfig,SecureName,"4"]
+
+
