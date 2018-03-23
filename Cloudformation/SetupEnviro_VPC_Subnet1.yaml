@@ -5,7 +5,7 @@
 #
 # History - Any changes need to be documented below.
 # 
-# 2/3/18 - v1.0 - Rhugg - Created YAML File
+# 2/3/18 - v1.0 - Created YAML File
 #
 #Start of Template
 AWSTemplateFormatVersion: 2010-09-09
